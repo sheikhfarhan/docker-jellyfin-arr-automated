@@ -113,7 +113,7 @@ These settings **must** be configured inside the Jellyfin Web UI (**Dashboard > 
 * **Effect:** Jellyfin reads the `X-Real-IP` header from Caddy to see the *actual* user's IP address. Without this, all logs show `172.20.0.23`, and IP-based security fails.
 
 ### **C. Published Server URIs & Allow Remote**
-* **Value:** `all=https://jellyfin.sfarhan.xyz`
+* **Value:** `all=https://jellyfin.mydomain.xyz`
 * **Why:** Explicitly tells clients (especially Android Apps) what the official public URL is.
 * **Effect:** Fixes "Connection Cannot be Established" errors on mobile networks (4G/5G). The `all=` prefix forces this URL for all clients, preventing them from trying to connect to unreachable internal IPs.
 * **Allow Remote Connections:** [x] Checked.
