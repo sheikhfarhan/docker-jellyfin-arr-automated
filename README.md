@@ -41,7 +41,7 @@ Hope it will help the future-me when and if i need to redeploy this to another m
 | `172.20.0.27` | **WUD** | `wud` | 3001 | Update Notifier |
 
 ---
-![homepage dashboard](/assets/homepage-dashboard.png)
+![homepage dashboard](/assets/homepage-dashboard1.png)
 
 ---
 
