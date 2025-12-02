@@ -9,7 +9,7 @@ This stack consolidates all management tools behind a **Socket Proxy**, ensuring
 ## 1\. Architecture
 
   * **Socket Proxy:** The *only* container with `/var/run/docker.sock` mounted. It exposes a sanitized Docker API on TCP port `2375`.
-  * **Dependent Services:** Homepage, Portainer, WUD, and Dozzle connect to `tcp://172.20.0.29:2375`.
+  * **Dependent Services:** Homepage, Portainer, WUD, and Dozzle connect to `tcp://172.20.0.28:2375`.
 
 ## 2\. Services Configuration
 
@@ -25,27 +25,27 @@ This stack consolidates all management tools behind a **Socket Proxy**, ensuring
 
   * **IP:** `172.20.0.25`
   * **Port:** `3000`
-  * **Docker Connection:** `DOCKER_HOST=tcp://172.20.0.29:2375`
+  * **Docker Connection:** `DOCKER_HOST=tcp://172.20.0.28:2375`
   * **Disk Monitoring:** Uses internal `/app/config` path to monitor the `dockerapps` volume without extra mounts.
 
 ### **C. WUD (Update Notifier)**
 
   * **IP:** `172.20.0.27`
   * **Port:** `3001`
-  * **Watcher:** Custom `PROXY` watcher pointing to `172.20.0.29`.
+  * **Watcher:** Custom `PROXY` watcher pointing to `172.20.0.28`.
   * **Registries:** GitHub/LSCR authenticated via `${GITHUB_TOKEN}` in `.env`.
 
 ### **D. Portainer (Management)**
 
   * **IP:** `172.20.0.17`
   * **Port:** `9443`
-  * **Connection:** Must be manually connected in UI to `tcp://172.20.0.29:2375`.
+  * **Connection:** Must be manually connected in UI to `tcp://172.20.0.28:2375`.
 
 ### **E. Dozzle (Log Viewer)**
 
   * **IP:** `172.20.0.26`
   * **Port:** `9090` (Mapped to host 8080)
-  * **Connection:** `DOCKER_HOST=tcp://socket-proxy:2375`
+  * **Connection:** `DOCKER_HOST=tcp://172.20.0.28:2375`
 
 -----
 

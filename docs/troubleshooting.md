@@ -53,8 +53,8 @@ docker exec -it wud ping socket-proxy
 
   * **Observation:** WUD logs showed `getaddrinfo ENOTFOUND socket-proxy`.
   * **Diagnosis:** Docker's internal DNS sometimes fails to resolve container names immediately on boot or across stack definitions.
-  * **The Fix:** Switch from **Hostname** (`socket-proxy`) to **Static IP** (`172.20.0.29`).
-      * *Config:* `WUD_WATCHER_PROXY_HOST=172.20.0.29`
+  * **The Fix:** Switch from **Hostname** (`socket-proxy`) to **Static IP** (`172.20.0.28`).
+      * *Config:* `WUD_WATCHER_PROXY_HOST=172.20.0.28`
 
 -----
 
