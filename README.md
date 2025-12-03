@@ -2,7 +2,8 @@
 
 **An automated media stack running on Arch Linux (CachyOS).**
 
-This repo documents the journey of building a self-hosted media server. It features a **"Split-Network" architecture** that balances VPN isolation for downloads with direct access for streaming, protected by security layers. \
+This repo documents the journey of building a self-hosted media server. It features a **"Split-Network" architecture** that balances VPN isolation for downloads with direct access for streaming, protected by security layers.
+
 Hope it will help the future-me when and if i need to redeploy this to another machine/dedicated server. And of course, if it helps others to make sense of things and deploy something similar, it would be awesome too! :)
 
 -----
@@ -25,6 +26,7 @@ We separate services into two distinct network zones.
   * **Zone 1: Trusted Apps (`dockerapps-net`)**
       * *Services:* Jellyfin, Jellyseerr, Caddy, Radarr, Sonarr, Bazarr, Homepage etc..
       * *Behavior:* Uses host internet for metadata & streaming. Accessible via Reverse Proxy.
+
   * **Zone 2: The VPN Bubble (`service:gluetun`)**
       * *Services:* qBittorrent, Transmission, FlareSolverr.
       * *Behavior:* These containers have **NO** IP address. They use `gluetun`'s network stack to force 100% of traffic through the AirVPN WireGuard tunnel.
@@ -58,7 +60,7 @@ We separate services into two distinct network zones.
 | `172.20.0.20` | **Prowlarr** | `vpn-arr` | 9696 | Indexer Manager |
 | `172.20.0.21` | **FlareSolverr** | `vpn-arr-stack` | 8191 | Captcha Solver |
 | `172.20.0.22` | **Jackett** | `vpn-arr-stack` | 9117 | Indexer Fallback |
-| `172.20.0.23` | **Caddy** | `caddy` | 80/443 | **Public Ingress** |
+| `172.20.0.23` | **Caddy** | `caddy` | 80/443 | **Reverse Proxy** |
 | `172.20.0.24` | **CrowdSec** | `crowdsec` | 8080 | Security Brain |
 | `172.20.0.25` | **Homepage** | `utilities` | 3000 | Dashboard |
 | `172.20.0.26` | **Dozzle** | `utilities` | 8080 | Log Viewer |
@@ -77,7 +79,7 @@ If I were to clone this repo to a brand-new machine right now and ran `start-sta
 
 This repo contains the *application* logic, but it is missing the **Host-Level Dependencies** that I configured manually in the terminal along the way.
 
-1.  **The Network Error:** Docker will complain that `dockerapps-net` does not exist. The `compose.yml` files expect it to be `external`, so they won't create it for us.
+1.  **The Network Error:** Docker will complain that `dockerapps-net` does not exist. The `compose` files expect it to be `external`, so they won't create it for us.
 2.  **The "Connection Refused" Error:** Without the specific `/etc/docker/daemon.json` IPv6/DNS fix I applied, containers might fail to talk to each other.
 3.  **The "Missing File" Error:** Caddy will crash because `GeoLite2-Country.mmdb` is excluded from the repo (correctly), but it doesn't exist on the new host.
 4.  **The "Missing Secrets" Error:** The `.env` files are git-ignored. A fresh clone has no API keys, so containers will start with empty variables and crash.
@@ -119,7 +121,7 @@ To make this truly reproducible, I try to document the **"One-Time Setup"** step
 
 3.  **Create the Network Infrastructure:**
 
-      * **Why:** Creates the `dockerapps-net` custom network with its own isolated IPv6 subnet (`abc2`).
+      * Creates the `dockerapps-net` custom network with its own isolated IPv6 subnet (`abc2`).
 
          ```bash
          docker network create \
@@ -155,7 +157,7 @@ To make this truly reproducible, I try to document the **"One-Time Setup"** step
 
 5.  **Identify Host IDs (For .env):**
 
-      * **Why:** Homepage and \*Arr apps need to know our user/group IDs.
+      * Homepage and \*Arr apps need to know our user/group IDs.
 
          ```bash
          echo "PUID=$(id -u)"
@@ -180,7 +182,9 @@ To make this truly reproducible, I try to document the **"One-Time Setup"** step
     ```
 
 2.  **Reconstruct Directories:**
-    Run the script in ![docs/folder-structure.md](docs/folder-structure.md) to create the empty config folders (e.g., `utilities/homepage/config`, `vpn-arr-stack/gluetun/auth`). The idea is that the folders config/data/store within each of the main sub-folders for each of the services should be created by me/user so that docker root would not create on our behalf, coz if they do, that folder witll have root:root ownership.
+    Run the script in ![docs/folder-structure.md](docs/folder-structure.md) to create the empty config folders (e.g., `utilities/homepage/config`, `vpn-arr-stack/gluetun/auth`). 
+
+    The idea is that the folders config/data/store within each of the main sub-folders for each of the services should be created by me/user so that docker root would not create on our behalf, coz if they do, that folder witll have root:root ownership.
 
 3.  **Restore "Ignored" Assets:**
 
@@ -204,7 +208,7 @@ To make this truly reproducible, I try to document the **"One-Time Setup"** step
 
 1.  **Bootstrap CrowdSec (Generate Keys):**
 
-      * Before starting the full stack, start CrowdSec to generate the keys Caddy and Homepage need.
+      Before starting the full stack, start CrowdSec to generate the keys Caddy and Homepage need.
 
          ```bash
          # Start just CrowdSec when at crowdsec folder
@@ -228,33 +232,33 @@ To make this truly reproducible, I try to document the **"One-Time Setup"** step
 
 3.  **Configure Jellyfin Networking (CRITICAL for Mobile):**
 
-      * **Dashboard \> Networking:**
-          * **LAN Networks:** `192.168.0.0/24, 172.20.0.0/24` (Enables local playback).
-          * **Known Proxies:** `172.20.0.23` (Trusts Caddy).
-          * **Published Server URIs:** `all=https://jellyfin.mydomain.xyz` (Fixes Android app connection).
+      *Dashboard \> Networking:*
+       * **LAN Networks:** `192.168.0.0/24, 172.20.0.0/24` (Enables local playback).
+       * **Known Proxies:** `172.20.0.23` (Trusts Caddy).
+       * **Published Server URIs:** `all=https://jellyfin.mydomain.xyz` (Fixes Android app connection).
 
 4.  **Configure Portainer:**
 
-      * Add Environment -\> Docker Standalone -\> API.
-      * **URL:** `tcp://172.20.0.28:2375` (Connects via Socket Proxy).
+      Add Environment -\> Docker Standalone -\> API.
+      **URL:** `tcp://172.20.0.28:2375` (Connects via Socket Proxy).
 
 5.  **Continue with Secrets** (`utilities/.env`, `vpn-arr-stack/.env` where needed). eg:
 
-   ```bash
-   nano utilities/.env
-   # Add: API Keys for Radarr, Sonarr, Jellyfin (now that we have the otehr services up)
-   # Add: Gotify Token
-   # Add: Gluetun keys
-   # ... 
-   ```
+       ```bash
+       nano utilities/.env
+       # Add: API Keys for Radarr, Sonarr, Jellyfin (now that we have the other services up)
+       # Add: Gotify Token
+       # Add: Gluetun keys
+       # ... 
+       ```
 
-*Refer to .env.example in each of the sub-folder.*
+    *Refer to .env.example in each of the sub-folder.*
 
-*I would also need to refer to the [docs/](docs/) folder for granular details on specific services.*
+    *I would also need to refer to the [docs/](docs/) folder for granular details on specific services.*
 
 ### **Verification**
 
-1.  **Check Caddy (Ingress):**
+1.  **Check Caddy:**
     ```bash
     docker logs caddy
     ```
@@ -298,11 +302,4 @@ This project is documented in modular "Deep Dives". Click the links below for de
 * **[Cloudflare Configuration](docs/cloudflare-setup.md):** Setup for API Tokens, DNS Records, and Permissions.
 * **[Firewalld](docs/security-firewall.md):** Firewalld "Software VLAN"
 * **[Utilities](docs/utilities.md):** Management stack & Socket Proxy.
-
------
-
-
-
-
-
 
