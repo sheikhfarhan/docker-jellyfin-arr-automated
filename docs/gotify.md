@@ -3,7 +3,6 @@
 **Location:** `/mnt/pool01/dockerapps/gotify` \
 **Network:** `dockerapps-net` (Static IP: `172.20.0.16`) \
 **URL:** `https://gotify.mydomain.xyz` (Public) / `http://172.20.0.16:80` (Internal) \
-**Compose File:** `compose.yml`
 
 Gotify acts as the central nervous system for the server. It receives alerts from all automation apps and pushes them instantly to our mobile devices via WebSocket.
 
@@ -11,28 +10,7 @@ Gotify acts as the central nervous system for the server. It receives alerts fro
 
 The service is lightweight, running on the official image with minimal configuration.
 
-**File:** `compose.yml`
-
-```yaml
-services:
-  gotify:
-    image: gotify/server
-    container_name: gotify
-    networks:
-      dockerapps-net:
-        ipv4_address: 172.20.0.16
-        ipv6_address: 2001:db8:abc2::16
-    ports:
-      - 8081:80  # Host Port 8081 -> Container Port 80 (Web UI)
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - GOTIFY_SERVER_PORT=80
-    volumes:
-      - ./data:/app/data  # Persists database (messages, users, apps)
-    restart: unless-stopped
-```
+**File:** [`compose.yml`](/gotify/compose.yml)
 
 ## 2\. Integration Map (Tokens)
 

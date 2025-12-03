@@ -3,7 +3,6 @@
 **Role:** Security "Brain" (IDS) \
 **Location:** `/mnt/pool01/dockerapps/crowdsec` \
 **Network:** `dockerapps-net` (Static IP: `172.20.0.24`) \
-**Compose File:** `compose.yml`
 
 CrowdSec acts as the intelligence hub for the server. It reads logs, detects attacks (brute force, scanners, botnets), and issues "Ban" decisions. It does **not** block traffic itself; it instructs **Caddy** (the "Bouncer") to do the blocking.
 
@@ -11,36 +10,7 @@ CrowdSec acts as the intelligence hub for the server. It reads logs, detects att
 
 The container is configured to persist its database locally (for backups) and read Caddy's logs in Read-Only mode.
 
-**File:** `compose.yml`
-
-```yaml
-services:
-  crowdsec:
-    image: crowdsecurity/crowdsec:latest
-    container_name: crowdsec
-    hostname: crowdsec
-    networks:
-      dockerapps-net:
-        ipv4_address: 172.20.0.24
-        ipv6_address: 2001:db8:abc2::24
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Singapore
-      # CRITICAL: These collections define WHAT attacks we look for
-      - COLLECTIONS=crowdsecurity/caddy crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/linux
-    volumes:
-      # Config & Data
-      - ./config:/etc/crowdsec:rw
-      - ./data:/var/lib/crowdsec/data/  # Local bind mount for easy backup
-      
-      # Acquisition Config (Tells CrowdSec WHAT to watch)
-      - ./acquis.yaml:/etc/crowdsec/acquis.yaml:ro
-      
-      # Target Logs (Mounted Read-Only from Caddy)
-      - /mnt/pool01/dockerapps/caddy/logs:/var/log/caddy:ro
-    restart: unless-stopped
-```
+**File:** [`compose`](/crowdsec/compose.yml)
 
 ## 2\. Acquisition Configuration (`acquis.yaml`)
 

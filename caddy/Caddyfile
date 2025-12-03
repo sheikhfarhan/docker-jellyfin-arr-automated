@@ -12,7 +12,7 @@
     crowdsec {
         api_url http://crowdsec:8080
         api_key {env.CROWDSEC_API_KEY}
-        ticker_interval 15s
+        ticker_interval 60s
     }
 
     # 3. Internal Logging

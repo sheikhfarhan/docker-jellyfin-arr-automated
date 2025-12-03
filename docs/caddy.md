@@ -3,7 +3,6 @@
 **Location:** `/mnt/pool01/dockerapps/caddy/` \
 **Network:** `dockerapps-net` (Static IP: `172.20.0.23`) \
 **Ports:** `80` & `443` (Directly exposed to Host) \
-**Compose File:** `compose.yml`
 
 This service is the **"Front Door"** of the server. It handles all incoming traffic from the public internet, secures it with SSL, filters it through security layers (GeoIP + CrowdSec), and routes it to the correct internal service.
 
@@ -28,6 +27,8 @@ FROM caddy:latest
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 ```
 
+**File:** [`Dockerfile`](/caddy/Dockerfile)
+
   * **Why:** This compiles a single binary that has native, high-performance access to Cloudflare's API and the MaxMind database without needing external scripts or sidecars.
 
 -----
@@ -44,39 +45,7 @@ The Compose file orchestrates the build and runtime environment.
       * **`./logs`**: Critical for CrowdSec (the "Brain") to read the access logs generated here.
       * **`./GeoLite2-Country.mmdb`**: Critical for the GeoIP plugin to function.
 
-```yaml
-services:
-  caddy:
-    build: .  # Uses the custom Dockerfile in this directory
-    image: caddy-cloudflare-plugin
-    container_name: caddy
-    hostname: caddy
-    networks:
-      dockerapps-net:
-        ipv4_address: 172.20.0.23
-        ipv6_address: 2001:db8:abc2::23
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
-      - CROWDSEC_API_KEY=${CROWDSEC_API_KEY}
-      - ROOT_DOMAIN=${ROOT_DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./data:/data
-      - ./config:/config
-      - ./logs:/var/log/caddy             # Shared with CrowdSec container
-      - ./GeoLite2-Country.mmdb:/etc/caddy/GeoLite2-Country.mmdb:ro
-    # IGNORE UPDATES: This is a local custom-built image.
-    # WUD cannot check it on Docker Hub (prevents 401 errors).
-    labels:
-      - "wud.watch=false"
-    restart: unless-stopped
-```
+**File:** [`compose`](/caddy/compose.yml)
 
 -----
 
@@ -149,95 +118,8 @@ jellyfin.{env.ROOT_DOMAIN} {
 }
 ```
 
-``` caddy
-# --- Global Options ---
-{
-    # 1. Dynamic DNS
-    dynamic_dns {
-        provider cloudflare {env.CLOUDFLARE_API_TOKEN}
-        domains {
-            {env.ROOT_DOMAIN} jellyfin requests gotify
-        }
-    }
+**File:** [`Caddyfile`](/caddy/Caddyfile)
 
-    # 2. CrowdSec (The "Brain")
-    crowdsec {
-        api_url http://crowdsec:8080
-        api_key {env.CROWDSEC_API_KEY}
-        ticker_interval 15s
-    }
-
-    # 3. Internal Logging
-    log {
-        output file /var/log/caddy/caddy.log {
-            roll_size 10mb
-            roll_keep 5
-        }
-        format json {
-            time_local
-        }
-    }
-}
-
-# --------------------------------------------------
-# 1. JELLYFIN (Media Server)
-# --------------------------------------------------
-jellyfin.{env.ROOT_DOMAIN} {
-    tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        resolvers 1.1.1.1
-    }
-    
-    log {
-        output file /var/log/caddy/access.log {
-            roll_size 10mb
-            roll_keep 5
-        }
-        format json {
-            time_local
-        }
-    }
-
-    # --- GEO-BLOCKING ---
-    @geo_sg {
-        maxmind_geolocation {
-            db_path "/etc/caddy/GeoLite2-Country.mmdb"
-            allow_countries SG
-        }
-    }
-
-    # Allowed Traffic Handler
-    handle @geo_sg {
-        # 1. CrowdSec Check
-        route {
-            crowdsec
-        }
-        # 2. Reverse Proxy
-        reverse_proxy http://jellyfin:8096 {
-            header_up X-Real-IP {remote_host}
-        }
-    }
-
-    # Blocked Traffic Handler
-    handle {
-        respond "Access Denied: Geo-Block Active" 403
-    }
-}
-```
-Repeat the blocks above for the other subdomains like so:
-
-```caddy
-# --------------------------------------------------
-# 2. JELLYSEERR (Requests)
-# --------------------------------------------------
-requests.{env.ROOT_DOMAIN} {
-    tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        resolvers 1.1.1.1
-    }
-
-<continue rest of blocks - the same>
-```
 -----
 
 ## 3\. Environment & Secrets (`.env`)
@@ -248,22 +130,8 @@ Sensitive keys and Variables are passed into the container at runtime, keeping t
   * **`CROWDSEC_API_KEY`:** Generated from the CrowdSec container to authorize the bouncer.
   * **`ROOT_DOMAIN`:** Used to replace the root domain.
   
-```yaml
-# .env for Caddy
-PUID=1000
-PGID=1000
-TZ=Asia/Singapore
+**File:** [`.env.example`](/caddy/.env.example)
 
-# Cloudflare DNS Zone API Token for mydomain.xyz
-CLOUDFLARE_API_TOKEN=-
-
-# Crowdsec Bouncer
-CROWDSEC_API_KEY=
-
-# Root Domain (e.g. mydomain.xyz)
-ROOT_DOMAIN=
-
-```
 ----
 
 ## 4\. Maintenance Commands

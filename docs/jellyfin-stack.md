@@ -11,68 +11,7 @@ This stack runs the primary media server (Jellyfin) and the request management f
 
 This configuration relies on the `media-stack` (or `dockerapps-net`) network and a specific `group_add` permission for the AMD GPU.
 
-**File:** `compose.yml`
-
-```yaml
-# ----------------------------------------
-# Network Definition - Have already set this up beforehand
-# ----------------------------------------
-networks:
-  dockerapps-net:
-    external: true
-services:
-  ##################################################
-  # 1. JELLYFIN (Media Server)
-  ##################################################
-  jellyfin:
-    image: linuxserver/jellyfin:latest
-    container_name: jellyfin
-    hostname: jellyfin
-    group_add:
-      - "988"
-    networks:
-      dockerapps-net:
-        ipv4_address: 172.20.0.10
-        ipv6_address: 2001:db8:abc2::10 # Your new static IPv6
-    ports:
-      - 8096:8096
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=Asia/Singapore
-    volumes:
-      - ./jellyfin-config:/config
-      - ./jellyfin-cache:/cache
-      - /mnt/pool01/media:/media
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128
-    restart: unless-stopped
-
-  ##################################################
-  # 2. JELLYSEERR (Request Manager)
-  ##################################################
-  jellyseerr:
-    image: ghcr.io/fallenbagel/jellyseerr:latest
-    init: true
-    container_name: jellyseerr
-    hostname: jellyseerr
-    networks:
-      dockerapps-net: 
-        ipv4_address: 172.20.0.12
-        ipv6_address: 2001:db8:abc2::12
-    ports:
-      - 5055:5055
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ} 
-    volumes:
-      - ./jellyseerr-config:/app/config
-    restart: unless-stopped
-    depends_on:
-      jellyfin:
-        condition: service_started
-```
+**File:** [`compose`](/jellyfin/compose.yml)
 
 ## 3\. Hardware Acceleration (AMD GPU)
 

@@ -108,15 +108,16 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - WUD_LOG_LEVEL=info
-      - WUD_WATCHER_PROXY_HOST=172.20.0.28
-      - WUD_WATCHER_PROXY_PORT=2375
+      - WUD_WATCHER_LOCAL_HOST=172.20.0.28
+      - WUD_WATCHER_LOCAL_PORT=2375
       # --- REGISTRIES ---
       - WUD_REGISTRY_LSCR_LSCR_USERNAME=${GITHUB_USER}
       - WUD_REGISTRY_LSCR_LSCR_TOKEN=${GITHUB_TOKEN}
-      - WUD_REGISTRY_GHCR_GHCR_USERNAME=${GITHUB_USER}
-      - WUD_REGISTRY_GHCR_GHCR_TOKEN=${GITHUB_TOKEN}
+      #- WUD_REGISTRY_GHCR_GHCR_USERNAME=${GITHUB_USER}
+      #- WUD_REGISTRY_GHCR_GHCR_TOKEN=${GITHUB_TOKEN}
     volumes:
       - ./wud/store:/store
+    stop_grace_period: 30s
     restart: unless-stopped
     depends_on:
       - socket-proxy

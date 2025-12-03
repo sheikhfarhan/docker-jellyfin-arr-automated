@@ -1,7 +1,6 @@
 # 🛠️ Utilities Stack (Management & Monitoring)
 
 **Location:** `/mnt/pool01/dockerapps/utilities` \
-**Compose File:** `compose.yml` \
 **Network:** `dockerapps-net` (Zone 1 - Trusted)
 
 This stack consolidates all management tools behind a **Socket Proxy**, ensuring no container has direct root access to the Docker socket.
@@ -46,6 +45,8 @@ This stack consolidates all management tools behind a **Socket Proxy**, ensuring
   * **IP:** `172.20.0.26`
   * **Port:** `9090` (Mapped to host 8080)
   * **Connection:** `DOCKER_HOST=tcp://172.20.0.28:2375`
+
+**File:** [`compose`](/utilities/compose.yml)
 
 -----
 

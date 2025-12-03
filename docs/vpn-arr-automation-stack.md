@@ -2,11 +2,12 @@
 
 **Location:** `/mnt/pool01/dockerapps/vpn-arr-stack/` \
 **Network:** `dockerapps-net` (Management) & `service:gluetun` (Downloads) \
-**Compose File:** `compose.yml`
 
 This stack is the engine of the media server. It handles finding, downloading, renaming, and organizing content. It relies on a "Two-Zone" network architecture to ensure no piracy traffic leaks outside the VPN.
 
 -----
+
+**File:** [`compose`](/vpn-arr-stack/compose.yml)
 
 ## 1\. The VPN Gateway (Zone 2)
 
