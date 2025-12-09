@@ -115,6 +115,8 @@ services:
       - WUD_REGISTRY_LSCR_LSCR_TOKEN=${GITHUB_TOKEN}
       #- WUD_REGISTRY_GHCR_GHCR_USERNAME=${GITHUB_USER}
       #- WUD_REGISTRY_GHCR_GHCR_TOKEN=${GITHUB_TOKEN}
+      - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
+      - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=${GOTIFY_TOKEN}
     volumes:
       - ./wud/store:/store
     stop_grace_period: 30s
