@@ -288,7 +288,7 @@ services:
       retries: 3
       start_period: 20s   # Grace period for slow startup
       start_interval: 5s  # CRITICAL: Check rapidly (every 5s) during startup so Prowlarr doesn't wait 5 mins
-        
+    restart: unless-stopped   
   ##################################################
   # 9. PROFILARR (Quality Settings & Custom Format Syncs)
   ##################################################
