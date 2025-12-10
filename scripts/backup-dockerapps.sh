@@ -50,7 +50,7 @@ rclone sync "$SOURCE_DIR" "$DEST_DIR" \
 
 # 5. Fix Log Ownership
 # Since root ran this, the log file is owned by root. 
-# We change it back to your user so you can read/delete it.
+# We change it back to user so can read/delete it.
 chown "$BACKUP_USER":"$BACKUP_USER" "$LOG_FILE"
 
 echo "Backup Complete: $(date)"
